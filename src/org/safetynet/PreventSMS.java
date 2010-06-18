@@ -29,6 +29,7 @@ import android.util.Log;
 public class PreventSMS extends BroadcastReceiver {
 
 	private static final boolean STOP_INCOMING = true;
+	//This is a test push
 
 	static final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
 
