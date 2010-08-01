@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Prevents incoming and outgoing SMS messages.
@@ -29,9 +30,7 @@ import android.util.Log;
 public class PreventSMS extends BroadcastReceiver {
 
 	private static final boolean STOP_INCOMING = true;
-	//This is a test push
-
-	static final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
+	// This is a test push
 
 	// TODO implement these features
 	private static final boolean HIDE = false;
@@ -42,31 +41,42 @@ public class PreventSMS extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		if (intent.getAction().equals(ACTION)) {
 
-			Bundle bundle = intent.getExtras();
-			if (bundle != null) {
-				Object o = bundle.get("pdus");
-
-				// This could happen if some program other than the default one
-				// sent the SMS and didn't properly create the Intent (note:
-				// look into android source to see if this is in fact possible)
-				if (o == null)
-					Log.i("sn", "Null pointer exception about to occur");
-
-				Object[] pdus = (Object[]) o;
-				final SmsMessage[] messages = new SmsMessage[pdus.length];
-				for (int i = 0; i < pdus.length; i++)
-					messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-
-				if (pdus.length != 1)
-					Log.i("sn", "Received " + pdus.length + " messages");
-
-				for (SmsMessage s : messages)
-					Log.i("sn", "Message: " + s.getDisplayMessageBody());
-
-			}
-
+		Bundle bundle = intent.getExtras();
+		if (bundle == null) {
+			return;
 		}
+
+		Object o = bundle.get("pdus");
+
+		// This could happen if some program other than the default one
+		// sent the SMS and didn't properly create the Intent (note:
+		// look into android source to see if this is in fact possible)
+		if (o == null)
+			Log.i("sn", "Null pointer exception about to occur");
+
+		Object[] pdus = (Object[]) o;
+		final SmsMessage[] messages = new SmsMessage[pdus.length];
+		for (int i = 0; i < pdus.length; i++)
+			messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+
+		if (pdus.length != 1)
+			Log.i("sn", "Received " + pdus.length + " messages");
+
+		Log.i("sn", "Aborting");
+
+		Toast.makeText(context, "Warning: Aborted an SMS", Toast.LENGTH_SHORT)
+				.show();
+
+		for (SmsMessage s : messages) {
+			Log.i("sn", "Message: " + s.getDisplayMessageBody());
+			Toast.makeText(context, s.getMessageBody(), Toast.LENGTH_LONG)
+					.show();
+		}
+
+		abortBroadcast();
+
+		Log.i("sn", "Aborted");
+
 	}
 }
